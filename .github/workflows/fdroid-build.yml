@@ -1,0 +1,42 @@
+name: F-Droid CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # GitHubの画面から手動で実行できるようにする
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 CIリポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: ⚙️ fdroidserver のインストール
+        # Ubuntuの公式リポジトリからfdroidserverをインストールします
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fdroidserver
+
+      - name: 🛠️ F-Droid ワークスペースの初期化
+        # fdroidコマンドを動かすための初期設定(config.pyの生成など)
+        run: |
+          fdroid init
+          
+          # プリインストールのAndroid SDKをfdroidserverに認識させる
+          cat <<EOF >> config.py
+          sdk_path = "$ANDROID_HOME"
+          EOF
+
+      - name: 🚀 F-Droid ビルドの実行
+        # ここで提供いただいたレシピの sudo や prebuild, gradle がF-Droid経由で実行されます
+        run: |
+          # ⚠️ ここをご自身のアプリの正しいパッケージ名（YAMLのファイル名から.ymlを抜いたもの）に変更してください
+          APP_ID="io.github.rinoprogram.audiovisualizer"
+          
+          echo "==== $APP_ID のビルドを開始します ===="
+          # -v: 詳細ログを出力, -l: メタデータに記載された最新バージョンをビルド
+          fdroid build -v -l $APP_ID
