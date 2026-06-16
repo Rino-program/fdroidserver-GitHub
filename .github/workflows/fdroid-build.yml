@@ -1,7 +1,7 @@
 name: F-Droid CI/CD
 
 on:
-  workflow_dispatch: # GitHubの画面から手動で実行できるようにする
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,29 +11,47 @@ jobs:
       - name: 📥 CIリポジトリのチェックアウト
         uses: actions/checkout@v4
 
+      # 1. 本体アプリ側と全く同じ Node.js 20 をセットアップ
+      - name: 🟢 Node.js のセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 2. 本体アプリ側と全く同じ Java 21 (Temurin) をセットアップ
+      - name: ☕ Java (JDK 21) のセットアップ
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
       - name: ⚙️ fdroidserver のインストール
         run: |
-          # F-Droid公式PPAを追加して最新版を取得できるようにする
           sudo add-apt-repository -y ppa:fdroid/fdroidserver
           sudo apt-get update
           sudo apt-get install -y fdroidserver
 
+      # 3. F-Droid公式（および本体アプリのActions）と完全に同じ絶対パスのワークスペースを構築
+      - name: 🛠️ F-Droid ワークスペースを絶対パスに構築
+        run: |
+          sudo mkdir -p /builds/Rino-program/fdroiddata
+          sudo chown -R $USER:$USER /builds/
+          # このCIリポジトリの全ファイル（metadataフォルダなど）を絶対パス側にコピー
+          cp -a $GITHUB_WORKSPACE/. /builds/Rino-program/fdroiddata/
+
+      # 4. 作成した絶対パス側で F-Droid を初期化
       - name: 🛠️ F-Droid ワークスペースの初期化
-        # fdroidコマンドを動かすための初期設定(config.pyの生成など)
+        working-directory: /builds/Rino-program/fdroiddata
         run: |
           fdroid init
-          
-          # プリインストールのAndroid SDKをfdroidserverに認識させる
           cat <<EOF >> config.py
           sdk_path = "$ANDROID_HOME"
           EOF
 
+      # 5. 作成した絶対パス側でビルドを実行
+      # これにより fdroid は `/builds/Rino-program/fdroiddata/build/io.github.rinoprogram.audiovisualizer` を作ってビルドします
       - name: 🚀 F-Droid ビルドの実行
-        # ここで提供いただいたレシピの sudo や prebuild, gradle がF-Droid経由で実行されます
+        working-directory: /builds/Rino-program/fdroiddata
         run: |
-          # ⚠️ ここをご自身のアプリの正しいパッケージ名（YAMLのファイル名から.ymlを抜いたもの）に変更してください
           APP_ID="io.github.rinoprogram.audiovisualizer"
-          
           echo "==== $APP_ID のビルドを開始します ===="
-          # -v: 詳細ログを出力, -l: メタデータに記載された最新バージョンをビルド
           fdroid build -v -l $APP_ID
