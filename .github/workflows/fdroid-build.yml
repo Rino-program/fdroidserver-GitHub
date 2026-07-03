@@ -12,10 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       # 1. 本体アプリ側と全く同じ Node.js 20 をセットアップ
-      - name: 🟢 Node.js のセットアップ
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      # [削除済み]
 
       # 2. 本体アプリ側と全く同じ Java 21 (Temurin) をセットアップ
       - name: ☕ Java (JDK 21) のセットアップ
