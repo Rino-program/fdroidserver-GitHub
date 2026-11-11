@@ -26,25 +26,29 @@ jobs:
           pipx inject fdroidserver "setuptools<82"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+          # gradlew-fdroid のダウンロードと配置
+          SITE_PACKAGES=$(ls -d /opt/pipx/venvs/fdroidserver/lib/python*/site-packages)
+          sudo git clone --depth 1 https://gitlab.com/fdroid/gradlew-fdroid.git /tmp/gradlew-fdroid
+          sudo cp /tmp/gradlew-fdroid/gradlew* "$SITE_PACKAGES/"
+          sudo chmod +x "$SITE_PACKAGES/gradlew-fdroid"
+
       # 3. F-Droid公式（および本体アプリのActions）と完全に同じ絶対パスのワークスペースを構築
       - name: 🛠️ F-Droid ワークスペースを絶対パスに構築
         run: |
           sudo mkdir -p /builds/Rino-program/fdroiddata
           sudo chown -R $USER:$USER /builds/
-          # このCIリポジトリの全ファイル（metadataフォルダなど）を絶対パス側にコピー
           cp -a $GITHUB_WORKSPACE/. /builds/Rino-program/fdroiddata/
 
-      # 4. 作成した絶対パス側で F-Droid を初期化
+      # 4. 作成した絶対パス側で F-Droid を初期化 (config.yml を使用)
       - name: 🛠️ F-Droid ワークスペースの初期化
         working-directory: /builds/Rino-program/fdroiddata
         run: |
           fdroid init
-          cat <<EOF >> config.py
-          sdk_path = "$ANDROID_HOME"
+          cat <<EOF >> config.yml
+          sdk_path: "$ANDROID_HOME"
           EOF
 
       # 5. 作成した絶対パス側でビルドを実行
-      # これにより fdroid は `/builds/Rino-program/fdroiddata/build/io.github.rinoprogram.audiovisualizer` を作ってビルドします
       - name: 🚀 F-Droid ビルドの実行
         working-directory: /builds/Rino-program/fdroiddata
         run: |
