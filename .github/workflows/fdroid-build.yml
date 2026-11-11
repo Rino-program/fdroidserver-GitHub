@@ -23,6 +23,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pipx apksigner zlib1g-dev libjpeg-dev
           pipx install fdroidserver
+          pipx inject fdroidserver setuptools
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       # 3. F-Droid公式（および本体アプリのActions）と完全に同じ絶対パスのワークスペースを構築
