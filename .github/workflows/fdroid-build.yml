@@ -11,9 +11,6 @@ jobs:
       - name: 📥 CIリポジトリのチェックアウト
         uses: actions/checkout@v4
 
-      # 1. 本体アプリ側と全く同じ Node.js 20 をセットアップ
-      # [削除済み]
-
       # 2. 本体アプリ側と全く同じ Java 21 (Temurin) をセットアップ
       - name: ☕ Java (JDK 21) のセットアップ
         uses: actions/setup-java@v4
@@ -23,7 +20,9 @@ jobs:
 
       - name: ⚙️ fdroidserver のインストール
         run: |
-          sudo add-apt-repository -y ppa:fdroid/fdroidserver
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9AAC253193B65D4DF1D0A13EEC4632C79C5E0151" | sudo gpg --dearmor -o /etc/apt/keyrings/fdroid.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/fdroid.gpg] https://ppa.launchpadcontent.net/fdroid/fdroidserver/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/fdroid.list
           sudo apt-get update
           sudo apt-get install -y fdroidserver
 
