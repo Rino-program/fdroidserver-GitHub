@@ -44,9 +44,6 @@ jobs:
         working-directory: /builds/Rino-program/fdroiddata
         run: |
           fdroid init
-          cat <<EOF >> config.yml
-          sdk_path: "$ANDROID_HOME"
-          EOF
 
       # 5. 作成した絶対パス側でビルドを実行
       - name: 🚀 F-Droid ビルドの実行
