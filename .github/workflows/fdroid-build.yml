@@ -20,11 +20,10 @@ jobs:
 
       - name: ⚙️ fdroidserver のインストール
         run: |
-          sudo install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9AAC253193B65D4DF1D0A13EEC4632C79C5E0151" | sudo gpg --dearmor -o /etc/apt/keyrings/fdroid.gpg
-          echo "deb [signed-by=/etc/apt/keyrings/fdroid.gpg] https://ppa.launchpadcontent.net/fdroid/fdroidserver/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/fdroid.list
           sudo apt-get update
-          sudo apt-get install -y fdroidserver
+          sudo apt-get install -y pipx apksigner zlib1g-dev libjpeg-dev
+          pipx install fdroidserver
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       # 3. F-Droid公式（および本体アプリのActions）と完全に同じ絶対パスのワークスペースを構築
       - name: 🛠️ F-Droid ワークスペースを絶対パスに構築
